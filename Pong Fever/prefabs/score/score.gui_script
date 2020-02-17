@@ -1,0 +1,164 @@
+local datas = require "modules.Datas"
+
+local function PlayerScored (self, url, property)
+	if self.player ~= self.score + self.fever then
+		self.player = self.player + 1
+		gui.set_text(gui.get_node("player"), self.player)
+		self.PlayerFever  = self.PlayerFever - 1
+		gui.set_text(self.PlayerFeverCountNode, self.PlayerFever)
+	else
+		timer.cancel(self.timer)
+		self.playerTimerOn = false
+	end
+	-- end game
+	-- winner 1 is player
+	if self.player >= 100 then
+		-- enable mainLVL
+		msg.post("loader:/MainLvL#MainLvL_proxy", "enable")
+		msg.post("MainLvL:/UI#MainLvL", "matchEnded", { winner = 1 })
+	end
+end
+
+local function Scored (self)
+	if self.animOn == false and self.animOnAI == false then
+		gui.animate(self.PlayerFeverCountNode, "color", datas.colors.green, gui.EASING_INOUTSINE, 1.5, 0, function () self.animOn = false; self.animOnAI = false end, gui.PLAYBACK_ONCE_PINGPONG)
+		gui.animate(self.PlayerFeverNode, "color", datas.colors.green, gui.EASING_INOUTSINE, 1.5, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+		gui.animate(self.AIFeverCountNode, "color", self.color, gui.EASING_INOUTSINE, 1.5, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+		gui.animate(self.AIFeverNode, "color", self.color, gui.EASING_INOUTSINE, 1.5, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+		self.animOn = true
+		self.animOnAI = true
+	end
+end
+
+local function AIScored (self, url, property)
+	if self.AI ~= self.AIscore + self.feverAI then
+		self.AI = self.AI + 1
+		gui.set_text(self.AINode, self.AI)
+		self.AIFever = self.AIFever - 1
+		gui.set_text(self.AIFeverCountNode, self.AIFever)
+	else
+		timer.cancel(self.timerAI)
+		self.AITimerOn = false
+	end
+	-- end game
+	-- winner 2 is AI
+	if self.AI >= 100 then
+		-- enable mainLVL
+		msg.post("loader:/MainLvL#MainLvL_proxy", "enable")
+		msg.post("MainLvL:/UI#MainLvL", "matchEnded", { winner = 2 })
+	end
+end
+
+function init(self)
+	-- I use those more than once
+	self.PlayerFeverCountNode = gui.get_node("PlayerFeverCount")
+	self.AIFeverCountNode = gui.get_node("AIFeverCount")
+	self.PlayerFeverNode = gui.get_node("PlayerFever")
+	self.AIFeverNode = gui.get_node("AIFever")
+	self.AINode = gui.get_node("AI")
+	self.AIGoalNode = gui.get_node("AIGoal")
+	-- colors
+	-- 1 pink, 2 red, 3 turquo
+	if opponent == 1 then
+		self.color = datas.colors.pink
+		gui.set_color(self.AINode, self.color)
+	elseif opponent == 2 then
+		self.color = datas.colors.red
+		gui.set_color(self.AINode, self.color)
+	elseif opponent == 3 then
+		self.color = datas.colors.turquo
+		gui.set_color(self.AINode, self.color)
+	elseif opponent == 4 then
+		self.color = datas.colors.yellow
+		gui.set_color(self.AINode, self.color)
+	else
+		self.color = datas.colors.white
+		gui.set_color(self.AINode, self.color)
+	end
+	self.player = 0
+	self.AI = 0
+	self.PlayerFever = 0
+	self.AIFever = 0
+	self.playerTimerOn = false
+	self.AITimerOn = false
+	self.animOn = false
+	self.animOnAI = false
+	self.playerScore = false
+	self.AIScore = false
+	onFever = false
+	self.values = { 0, 0, 0, 0, 0, 0, 0, 0,
+					1, 1, 1, 1, 1, 1, 1, 1,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					1, 1, 1, 1, 1, 1, 1, 1,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					1, 1, 1, 1, 1, 1, 1, 1,
+					0, 0, 0, 0, 0, 0, 0, 0 }
+	self.vec = vmath.vector(self.values)
+	-- to make it small when game starts
+	gui.set_scale(gui.get_node("BulletTime"), vmath.vector3(10, bulletTimeCounter * 560, 1))
+end
+
+function update(self, dt)
+	gui.set_scale(gui.get_node("BulletTime"), vmath.vector3(10, bulletTimeCounter * 560, 1))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == datas.hashs.playerScore then
+		if self.playerScore == false then
+			self.playerScore = true
+			gui.animate(gui.get_node("PlayerGoal"), "color", datas.colors.green, self.vec, 3, 0, function () self.playerScore = false end, gui.PLAYBACK_ONCE_PINGPONG)
+		end
+		self.score = self.player
+		self.fever = self.PlayerFever
+		self.AIFever = 0
+		gui.set_text(self.AIFeverCountNode, self.AIFever)
+		Scored (self)
+		if self.playerTimerOn == false then
+			self.timer = timer.delay(0.05, true, PlayerScored)
+			self.playerTimerOn = true
+		end
+		onFever = false
+	elseif message_id == datas.hashs.AIScore then
+		if self.AIScore == false then
+			self.AIScore = true
+			gui.animate(self.AIGoalNode, "color", self.color, self.vec, 3, 0, function () self.AIScore = false end, gui.PLAYBACK_ONCE_PINGPONG)
+		end
+		self.AIscore = self.AI
+		self.feverAI = self.AIFever
+		self.PlayerFever = 0
+		gui.set_text(self.PlayerFeverCountNode, self.PlayerFever)
+		Scored (self)
+	if self.AITimerOn == false then
+		self.timerAI = timer.delay(0.05, true, AIScored)
+		self.AITimerOn = true
+		onFever = false
+	end
+	
+	elseif message_id == datas.hashs.PlayerFever then
+		self.PlayerFever = self.PlayerFever + 5
+		gui.set_text(self.PlayerFeverCountNode, self.PlayerFever)
+		if self.animOn == false then
+			local color = datas.colors.green
+			color.w = 1
+			gui.animate(self.PlayerFeverCountNode, "color", color, gui.EASING_INOUTSINE, 1.5, 0, function () self.animOn = false end , gui.PLAYBACK_ONCE_PINGPONG)
+			gui.animate(self.PlayerFeverNode, "color", color, gui.EASING_INOUTSINE, 1.5, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+			self.animOn = true
+		end
+		if self.PlayerFever >= 20 then 
+			onFever = true 
+		end
+	elseif  message_id == datas.hashs.AIFever then
+		self.AIFever = self.AIFever + 5
+		gui.set_text(self.AIFeverCountNode, self.AIFever)
+		if self.animOnAI == false then
+			local color = self.color
+			color.w = 1
+			gui.animate(self.AIFeverCountNode, "color", color, gui.EASING_INOUTSINE, 1.5, 0, function () self.animOnAI = false end, gui.PLAYBACK_ONCE_PINGPONG)
+			gui.animate(self.AIFeverNode, "color", color, gui.EASING_INOUTSINE, 1.5, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+			self.animOnAI = true
+		end
+		if self.AIFever >= 20 then 
+			onFever = true
+		end
+	end
+end

@@ -1,0 +1,53 @@
+local datas = require "modules.Datas"
+
+function init(self)
+	go.property("direction", 0) -- it's a go.property coz messages only changes those
+	go.property("type", 1) -- 1 wall, 2 ball, 3 goal  -- it's a go.property coz messages only changes those
+	sprite.set_constant("#sprite", "tint", datas.colors.blue)
+
+	if self.type == 1 then
+		go.set_scale(rnd.range(5, 10))
+		-- speed y is +, change it in update
+		if rnd.range(0, 1) == 1 then
+			-- x is random
+			self.speed = vmath.vector3(rnd.range(2, 10), rnd.range(2, 10), 0)
+		else
+			self.speed = vmath.vector3(-rnd.range(2, 10), rnd.range(2, 10), 0)
+		end
+	elseif self.type == 2 then
+		-- if it's tail don't move on x
+		go.set_scale(rnd.range(5, 10))
+		self.speed = vmath.vector3(0, rnd.range(2, 10), 0)
+	else
+		go.set_scale(rnd.range(15, 25))
+		-- colors
+		if onFever == false then
+			sprite.set_constant("#sprite", "tint", datas.colors.blue)
+		else
+			sprite.set_constant("#sprite", "tint", datas.colors.purple)
+		end
+		if rnd.range(0, 1) == 1 then
+			self.speed = vmath.vector3(rnd.range(1, 10), rnd.range(2, 10), 0)
+		else
+			self.speed = vmath.vector3(-rnd.range(2, 10), rnd.range(1, 10), 0)
+		end
+	end
+	local timer = timer.delay(rnd.range(3, 6) / 10, false, function ( ) go.delete() end )
+end
+
+function update(self, dt)
+	self.currentPos = go.get_position()
+	if self.direction == 0 then
+		self.currentPos = self.currentPos - self.speed
+	else
+		self.currentPos = self.currentPos + self.speed
+	end
+	go.set_position(self.currentPos)
+	-- if not on fever and wall or ball
+	if onFever == true and (self.type == 1 or self.type == 2) then
+		sprite.set_constant("#sprite", "tint", datas.colors.purple)
+		sprite.set_constant("/ball#sprite", "tint", datas.colors.purple)
+	elseif onFever == false then
+		sprite.set_constant("/ball#sprite", "tint", datas.colors.blue)
+	end
+end

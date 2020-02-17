@@ -1,0 +1,254 @@
+local datas = require "modules.Datas"
+
+-- used this a lot so this is easyer
+
+local function GoBig (self, url, property)
+	self.goBig = true
+end
+
+function BulletTime (self, on)
+	-- slow time
+	if on == true then
+		self.Speed = self.Speed / 3
+		self.Doge_Speed = self.Doge_Speed / 3
+	else
+		-- speed up time
+		self.Speed = self.Speed * 3
+		self.Doge_Speed = self.Doge_Speed * 3
+	end
+end
+
+
+local function BulletTimer (self, handle, time_elapsed)
+	-- if bullet time is started and still has mana
+	if self.bulletTime == true and bulletTimeCounter > 0 then
+		-- decrease mana
+		bulletTimeCounter = bulletTimeCounter - 0.01
+		-- if bullet time is stoped
+	elseif self.bulletTime == false and bulletTimeCounter < 0.5 then
+		bulletTimeCounter = bulletTimeCounter + 0.005
+	end
+	-- if bullet time is started but mana is empty
+	if bulletTimeCounter <= 0 and self.bulletTime == true then
+		-- go out of bullet time
+		BulletTime(self, false)
+		-- say go out of bullet time
+		self.bulletTime = false
+	end
+end
+
+function StopTime (self, duration, URL, direction)
+	if noStop == true then -- if game is not already stoped
+		noStop = false -- say game is stoped
+		
+		local timeStop = timer.delay(0.0001, false, function () 
+			msg.post(currentProxy, "set_time_step", { factor = 0.0001, mode = 0 })
+		end )
+		
+		local timeStart = timer.delay(duration, false, function ()
+			msg.post(currentProxy, "set_time_step", {factor = 1, mode = 0})
+			noStop = true -- say game is started
+			-- if URL existing, crate particles when game starts
+			if URL then 
+				for i = 1, rnd.range(10, 30) do
+					factory.create(URL, nil, nil, { direction = direction, type = 1 })
+				end
+			end
+		end ) -- timer ends here
+		
+	end
+end
+
+local function Tail (self, url, property)
+	-- tail particles goes whitch way
+	if self.Speed < 0 then
+		factory.create("#factory", nil, nil, { direction = 1, type = 2 })
+	else
+		factory.create("#factory", nil, nil, { direction = 0, type = 2 })
+	end
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	go.property("Speed", 800) -- move the ball, + means up - means down
+	go.property("Doge_Speed", 15) -- move the ball
+	go.property("Recoil", 25) -- how mutch camera recoils
+	go.property("Stop_Duration", 0.016675) -- when hit
+	self.doge = vmath.vector3(0, 0, 0) -- move the ball
+	self.goBig = true -- in goBig func and hit anims
+	self.tail = timer.delay(0.1, true, Tail) -- tail particles
+	self.goal = false -- when goal
+	self.bulletTime = false -- in BulletTimer func
+	self.restart = false -- on input
+	noStop = true -- StopTime func // global coz wall uses this too
+	self._Speed = -self.Speed -- to prevent bug that slows speed if goal when bullettime
+	bulletTimeCounter = 0.5-- in BulletTimer func global coz UI uses it too
+	local bullerDecrease = timer.delay(0.01, true, BulletTimer)
+	sprite.set_constant("#sprite", "tint", datas.colors.blue)
+	-- found current proxy
+	-- pink = 1, red = 2, turquo = 3
+	if opponent == 1 then
+		currentProxy = msg.url("loader:/Pink#Pink_proxy") --StopTime uses
+	elseif opponent == 2 then
+		currentProxy = msg.url("loader:/Red#Red_proxy")
+	elseif opponent == 3 then
+		currentProxy = msg.url("loader:/Turquo#Turquo_proxy")
+	elseif opponent == 4 then
+		currentProxy = msg.url("loader:/Yellow#Yellow_proxy")
+	else
+		currentProxy = msg.url("loader:/White#White_proxy")
+	end
+end
+
+function update(self, dt)
+	-- move the ball
+	self.currentPos = go.get_position()
+	self.currentPos.y = self.currentPos.y + self.Speed * dt
+	-- doge makes ball move left-right, and helps when the ball on edge
+	self.currentPos.x = self.currentPos.x + self.doge.x * self.Doge_Speed * dt
+	go.set_position(self.currentPos)
+	
+	if self.currentPos.x > 217 then -- on edge
+		-- we don't want this chunk to run for 2 frames
+		self.currentPos.x = self.currentPos.x - 5
+		go.set_position(self.currentPos)
+		
+		msg.post("camera", "recoil", { offset = vmath.vector3(-self.Recoil, 0, 0), duration = 0.1 })
+		sound.play("#top", {delay = 0, gain = 1, pan = 0, speed = 1})
+		-- change balls direction
+		self.doge = self.doge * -1
+		-- stop time to juise it
+		StopTime(self, self.Stop_Duration)
+		
+	elseif self.currentPos.x < -217 then
+		-- we don't want this chunk to run for 2 frames
+		self.currentPos.x = self.currentPos.x + 5
+		go.set_position(self.currentPos)
+		
+		msg.post("camera", "recoil", { offset = vmath.vector3(self.Recoil, 0, 0), duration = 0.1 })
+		sound.play("#bottom", {delay = 0, gain = 1, pan = 0, speed = 1})
+		-- change balls direction
+		self.doge = self.doge * -1
+		-- stop time to juise it
+		StopTime(self, self.Stop_Duration)
+	end
+	-- when goal, self.goal coz we don't want this chunk to run for 2 frames
+	if self.currentPos.y > 412 and self.goal == false then
+		-- say it's a goal
+		self.goal = true
+		-- stop tail particles
+		timer.cancel(self.tail)
+		-- goal particles
+		for i = 1, rnd.range(70, 100) do
+			factory.create("#factory", nil, nil, { direction = 0, type = 3 })
+		end
+		self.Speed = 0
+		-- say it's a goal to UI
+		msg.post("/LvL#score", "playerScore")
+		-- animate the ball to the middle and say it's ready to restart and it's doge is 0
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0, 0 ,1), go.EASING_OUTBOUNCE, 2, 0, function () self.restart = true 
+			self.doge = vmath.vector3(0, 0, 0) end )
+	elseif self.currentPos.y < -412 and self.goal == false then
+		-- say it's a goal
+		self.goal = true
+		-- stop tail particles
+		timer.cancel(self.tail)
+		-- goal particles
+		for i = 1, rnd.range(70, 100) do
+			factory.create("#factory", nil, nil, { direction = 1, type = 3 })
+		end
+		self.Speed = 0
+		-- say it's a goal to UI
+		msg.post("/LvL#score", "AIScore")
+		-- animate the ball to the middle and say it's ready to restart and it's doge is 0
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0, 0 ,1), go.EASING_OUTBOUNCE, 2, 0, function () self.restart = true 
+			self.doge = vmath.vector3(0, 0, 0) end )
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == datas.hashs.trigger_response and message.enter then
+		if message.other_group == datas.hashs.player then
+			StopTime(self, self.Stop_Duration, "/player#factory", 1)
+			-- say increase fever to UI
+			msg.post("/LvL#score", "PlayerFever")
+			msg.post("camera", "recoil", { offset = vmath.vector3(0, self.Recoil, 0), duration = 0.1 })
+			sound.play("/player#sound", {delay = 0, gain = 1, pan = 0, speed = 1})
+			-- change ball direction
+			self.Speed = self.Speed * -1
+			-- if ball hits left of the paddle ball moves left, if right moves right
+			self.doge = go.get_position() - go.get_position(message.other_id)
+			-- juised hit animation
+			if self.goBig == true then -- play only if animation is not already playing
+				go.animate("/player", "scale", go.PLAYBACK_ONCE_PINGPONG, vmath.vector3(2, 0.5 ,1), go.EASING_LINEAR, 0.2, 0, GoBig)
+				self.goBig = false -- say it's playing
+			end
+		elseif  message.other_group == datas.hashs.AI then
+			StopTime(self, self.Stop_Duration, "/AI#factory", 0)
+			-- say increase fever to UI
+			msg.post("/LvL#score", "AIFever")
+			msg.post("camera", "recoil", { offset = vmath.vector3(0, -self.Recoil, 0), duration = 0.1 })
+			sound.play("/AI#sound", {delay = 0, gain = 1, pan = 0, speed = 1})
+			-- change ball direction
+			self.Speed = self.Speed * -1
+			-- if ball hits left of the paddle ball moves left, if right moves right
+			self.doge = go.get_position() - go.get_position("/AI")
+			-- juised hit animation
+			if self.goBig == true then -- play only if animation is not already playing
+				go.animate("/AI", "scale", go.PLAYBACK_ONCE_PINGPONG, vmath.vector3(2, 0.5 ,1), go.EASING_LINEAR, 0.2, 0, GoBig)
+				self.goBig = false -- say it's playing
+			end
+		end
+	elseif message_id == datas.hashs.change then -- collide whit wall
+		-- ball direction
+		if self.Speed > 0 then
+			msg.post("camera", "recoil", { offset = vmath.vector3(0, -self.Recoil, 0), duration = 0.1 })
+			-- sending message to wall coz we don't know whitch wall we hit
+			msg.post(sender, "Create", { direction = 0, duration = self.Stop_Duration })
+		else
+			msg.post("camera", "recoil", { offset = vmath.vector3(0, self.Recoil, 0), duration = 0.1 })
+			-- sending message to wall coz we don't know whitch wall we hit
+			msg.post(sender, "Create", { direction = 1, duration = self.Stop_Duration })
+		end
+		-- change ball direction
+		self.Speed = self.Speed * -1
+		-- add just a little bit randomness, don't want to game stay in a loop
+		if rnd.range(0, 1) == 1 then
+			self.doge.x = self.doge.x + rnd.range(4, 10)
+		else
+			self.doge.x = self.doge.x - rnd.range(4, 10)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	-- if game is ready to restart and pressed
+	if self.restart == true and (action_id == datas.hashs.touch or action_id == datas.hashs.touch) then
+		-- say not in goal
+		self.goal = false
+		-- opne tail particles
+		self.tail = timer.delay(0.1, true, Tail)
+		-- say not ready to restart
+		self.restart = false
+		-- make speed normal again
+		self.Speed = self._Speed
+		
+	elseif self.goal == false and action_id == datas.hashs.multi and action.touch[2].pressed and action.touch[1] then
+		if self.bulletTime == false then
+			BulletTime(self, true)
+			self.bulletTime = true
+		elseif self.bulletTime == true then
+			BulletTime(self, false)
+			self.bulletTime = false
+		end
+		---[[
+	elseif self.goal == false and action_id == datas.hashs.touch and action.pressed then
+		if self.bulletTime == false then
+			BulletTime(self, true)
+			self.bulletTime = true
+		elseif self.bulletTime == true then
+			BulletTime(self, false)
+			self.bulletTime = false
+		end --]]
+	end
+end

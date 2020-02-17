@@ -1,0 +1,23 @@
+local datas = require "modules.Datas"
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	-- say win or say lose
+	local node = gui.get_node("End")
+	if t[1].name == "green" then
+		gui.set_text(node, "Champion !!")
+	else
+		gui.set_text(node, "Try Again !!")
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == datas.hashs.touch and action.pressed then
+		msg.post(".", "release_input_focus")
+		msg.post("loader:/LvLs#loader", "restart")
+
+		msg.post("loader:/Endgame#Endgame_proxy", "disable")
+		msg.post("loader:/Endgame#Endgame_proxy", "final")
+		msg.post("loader:/Endgame#Endgame_proxy", "unload")
+	end
+end

@@ -1,0 +1,263 @@
+name: "Turquo"
+instances {
+  id: "AI"
+  prototype: "/prefabs/AI/AI.go"
+  position {
+    x: 0.0
+    y: 400.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "AI"
+    properties {
+      id: "Speed"
+      value: "11.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+    properties {
+      id: "Color"
+      value: "5.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "ball"
+  prototype: "/prefabs/ball/ball.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  component_properties {
+    id: "ball"
+    properties {
+      id: "Speed"
+      value: "1000.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+    properties {
+      id: "Doge_Speed"
+      value: "20.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 18.0
+    y: 18.0
+    z: 1.0
+  }
+}
+instances {
+  id: "camera"
+  prototype: "/orthographic/camera.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  component_properties {
+    id: "script"
+    properties {
+      id: "offset_gui"
+      value: "true"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "player"
+  prototype: "/prefabs/player/player.go"
+  position {
+    x: 0.0
+    y: -340.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "wall"
+  prototype: "/prefabs/wall/wall.go"
+  position {
+    x: -180.0
+    y: 150.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "wall"
+    properties {
+      id: "color"
+      value: "6.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "wall1"
+  prototype: "/prefabs/wall/wall.go"
+  position {
+    x: -180.0
+    y: -150.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "wall"
+    properties {
+      id: "color"
+      value: "6.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "wall2"
+  prototype: "/prefabs/wall/wall.go"
+  position {
+    x: 175.0
+    y: 150.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "wall"
+    properties {
+      id: "color"
+      value: "6.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "wall3"
+  prototype: "/prefabs/wall/wall.go"
+  position {
+    x: 175.0
+    y: -150.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "wall"
+    properties {
+      id: "color"
+      value: "6.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "LvL"
+  data: "components {\n"
+  "  id: \"score\"\n"
+  "  component: \"/prefabs/score/score.gui\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 130.0
+    y: -2.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}

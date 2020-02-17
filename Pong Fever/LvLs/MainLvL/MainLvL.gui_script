@@ -1,0 +1,188 @@
+local datas = require "modules.Datas"
+
+local function Opponents (self)
+	-- make a random opponents table
+	self.opponentsTable = {}
+	local t = self.opponentsTable
+	local teams = datas.teams
+	for i, v in ipairs(teams) do -- make opponents table
+		t[i] = i
+	end
+	t[6] = nil -- green is not a opponent
+	-- randomize the table
+	for i = 1, #t * 2 do -- #t * 2 is a good no for randomness
+		local a = rnd.range(1, #t)
+		local b = rnd.range(1, #t)
+		t[a], t[b] = t[b], t[a] -- god I love swaping like this
+	end
+end
+
+local Fixture
+local RandomWin
+
+Fixture = function (self)
+	-- say player played 1 match
+	datas.teams[6].played = datas.teams[6].played + 1
+	local played = datas.teams[6].played
+	-- global ball and loader uses
+	opponent = self.opponentsTable[played]
+	-- change opponent name and color
+	local opponentName = datas.teams[opponent].name
+	local opponentNode = gui.get_node("opponent")
+	gui.set_text(opponentNode, opponentName)
+	gui.set_color(opponentNode, datas.colors[opponentName])
+	-- for other teams
+	-- check if first node changed
+	do
+		local isChanged = true
+		local name1
+		local name2
+		for i, v in ipairs(datas.teams) do
+			if i ~= opponent and i ~= 6 then
+				if isChanged then
+					self.name1i = i
+					name1 = v.name
+					local team2playNode = gui.get_node("team2play")
+					gui.set_text(team2playNode, name1)
+					gui.set_color(team2playNode, datas.colors[name1])
+					isChanged = false
+				else
+					self.name2i = i
+					name2 = v.name
+					local team4playNode = gui.get_node("team4play")
+					gui.set_text(team4playNode, name2)
+					gui.set_color(team4playNode, datas.colors[name2])
+				end
+			end
+		end
+		-- left 2 teams
+		local name3
+		local name4
+		local isChanged2 = true
+		for i, v in ipairs(datas.teams) do
+			if i ~= opponent and i ~= 6 and v.name ~= name1 and v.name ~= name2 then
+				if isChanged2 then
+					self.name3i = i
+					name3 = v.name
+					local team3playNode = gui.get_node("team3play")
+					gui.set_text(team3playNode, name3)
+					gui.set_color(team3playNode, datas.colors[name3])
+					isChanged2 = false
+				else
+					self.name4i = i
+					name4 = v.name
+					local team5playNode = gui.get_node("team5play")
+					gui.set_text(team5playNode, name4)
+					gui.set_color(team5playNode, datas.colors[name4])
+				end
+			end
+		end
+	end
+end
+
+RandomWin = function (self, team1, team2)
+	-- randomize win
+	if rnd.range(1, 2) == 1 then
+		datas.teams[team1].points = datas.teams[team1].points + 3
+	else
+		datas.teams[team2].points = datas.teams[team2].points + 3
+	end
+end
+
+local function SortAndPrint (self)
+	-- kame a holding table
+	t = {} -- endgame uses this
+	for i, v in ipairs(datas.teams) do
+		t[i] = v
+	end
+	table.sort(t, function(a, b) return a.points > b.points end)
+	-- set text and color of name
+	local team1Node = gui.get_node("team1")
+	gui.set_text(team1Node, t[1].name)
+	gui.set_color(team1Node, datas.colors[t[1].name])
+	local team2Node = gui.get_node("team2")
+	gui.set_text(team2Node, t[2].name)
+	gui.set_color(team2Node, datas.colors[t[2].name])
+	local team3Node = gui.get_node("team3")
+	gui.set_text(team3Node, t[3].name)
+	gui.set_color(team3Node, datas.colors[t[3].name])
+	local team4Node = gui.get_node("team4")
+	gui.set_text(team4Node, t[4].name)
+	gui.set_color(team4Node, datas.colors[t[4].name])
+	local team5Node = gui.get_node("team5")
+	gui.set_text(team5Node, t[5].name)
+	gui.set_color(team5Node, datas.colors[t[5].name])
+	local team6Node = gui.get_node("team6")
+	gui.set_text(team6Node, t[6].name)
+	gui.set_color(team6Node, datas.colors[t[6].name])
+	-- set text and color of points
+	local team1pointsNode = gui.get_node("team1points")
+	gui.set_text(team1pointsNode, t[1].points)
+	gui.set_color(team1pointsNode, datas.colors[t[1].name])
+	local team2pointsNode = gui.get_node("team2points")
+	gui.set_text(team2pointsNode, t[2].points)
+	gui.set_color(team2pointsNode, datas.colors[t[2].name])
+	local team3pointsNode = gui.get_node("team3points")
+	gui.set_text(team3pointsNode, t[3].points)
+	gui.set_color(team3pointsNode, datas.colors[t[3].name])
+	local team4pointsNode = gui.get_node("team4points")
+	gui.set_text(team4pointsNode, t[4].points)
+	gui.set_color(team4pointsNode, datas.colors[t[4].name])
+	local team5pointsNode = gui.get_node("team5points")
+	gui.set_text(team5pointsNode, t[5].points)
+	gui.set_color(team5pointsNode, datas.colors[t[5].name])
+	local team6pointsNode = gui.get_node("team6points")
+	gui.set_text(team6pointsNode, t[6].points)
+	gui.set_color(team6pointsNode, datas.colors[t[6].name])
+	
+end
+
+local function Start (self)
+	msg.post(".", "acquire_input_focus")
+	Fixture(self)
+end
+
+-- pink = 1, red = 2, turquo = 3
+
+function init(self)
+	Opponents(self)
+	Start(self) -- used this coz nodes dies after disableing ??
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == datas.hashs.matchEnded then
+		-- end game
+		if datas.teams[6].played == 5 then
+			msg.post("loader:/LvLs#loader", "Endgame" )
+		end
+
+		msg.post(".", "acquire_input_focus")
+		-- add points to winner
+		if message.winner == 1 then
+			-- add point
+			datas.teams[6].points = datas.teams[6].points + 3
+		else
+			datas.teams[opponent].points = datas.teams[opponent].points + 3
+		end
+		-- randoms
+		RandomWin (self, self.name1i, self.name2i)
+		RandomWin (self, self.name3i, self.name4i)
+		Start(self)
+		SortAndPrint (self)
+		-- unload currentProxy
+		msg.post(currentProxy, "disable")
+		msg.post(currentProxy, "final")
+		msg.post(currentProxy, "unload")
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == datas.hashs.touch and action.pressed then
+		if gui.pick_node(gui.get_node("NextMatch"), action.x, action.y) then
+			-- load next match
+			msg.post("loader:/LvLs#loader", "NextMatch" )
+			msg.post(".", "release_input_focus") -- input no longer needed
+			msg.post("loader:/MainLvL#MainLvL_proxy", "disable") -- disable this collection
+		end
+	end
+end

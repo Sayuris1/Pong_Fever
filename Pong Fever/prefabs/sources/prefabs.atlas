@@ -1,0 +1,9 @@
+images {
+  image: "/imgs/white.png"
+}
+images {
+  image: "/imgs/box.png"
+}
+margin: 0
+extrude_borders: 2
+inner_padding: 0

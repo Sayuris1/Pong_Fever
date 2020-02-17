@@ -1,0 +1,61 @@
+local datas = require "modules.Datas"
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+end
+
+-- pink = 1, red = 2, turquo = 3
+
+function on_message(self, message_id, message, sender)
+	if message_id == datas.hashs.proxy_loaded then
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+	elseif message_id == datas.hashs.NextMatch then -- if nextmatch button clicked
+		if opponent == 1 then -- Whitch opponent ? pink
+			msg.post("/Pink#Pink_proxy", "load")
+			msg.post("/Pink#Pink_proxy", "acquire_input_focus")
+		elseif opponent == 2 then -- red
+			msg.post("/Red#Red_proxy", "load")
+			msg.post("/Red#Red_proxy", "acquire_input_focus")
+		elseif opponent == 3 then -- turquo
+			msg.post("/Turquo#Turquo_proxy", "load")
+			msg.post("/Turquo#Turquo_proxy", "acquire_input_focus")
+		elseif opponent == 4 then
+			msg.post("/Yellow#Yellow_proxy", "load")
+			msg.post("/Yellow#Yellow_proxy", "acquire_input_focus")
+		else
+			msg.post("/White#White_proxy", "load")
+			msg.post("/White#White_proxy", "acquire_input_focus")
+		end
+		-- endgame
+	elseif message_id == datas.hashs.Endgame then
+		msg.post("/Endgame#Endgame_proxy", "load")
+		msg.post("/Endgame#Endgame_proxy", "acquire_input_focus")
+		-- end current match
+		msg.post(currentProxy, "disable")
+		msg.post(currentProxy, "final")
+		msg.post(currentProxy, "unload")
+		-- end main
+		msg.post("/MainLvL#MainLvL_proxy", "disable")
+		msg.post("/MainLvL#MainLvL_proxy", "final")
+		msg.post("/MainLvL#MainLvL_proxy", "unload")
+	-- restart
+	elseif message_id == datas.hashs.restart then
+		-- reset teams
+		datas.teams = { { name = "pink", points = 0, played = 0 }, { name = "red", points = 0, played = 0 }, { name = "turquo", points = 0, played = 0 },
+		{ name = "yellow", points = 0, played = 0 }, { name = "white", points = 0, played = 0 }, { name = "green", points = 0, played = 0 }, }
+		-- enable loader
+		msg.post(".", "acquire_input_focus")
+		msg.post("/UI#Welcome", "enable")
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == datas.hashs.touch and action.pressed then
+		msg.post("/MainLvL#MainLvL_proxy", "load")
+		msg.post("/MainLvL#MainLvL_proxy", "acquire_input_focus") -- proxy need to have input focus. It spreads fcous from there
+		msg.post(".", "release_input_focus")
+		
+		msg.post("/UI#Welcome", "disable")
+	end
+end

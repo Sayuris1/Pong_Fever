@@ -1,0 +1,38 @@
+local datas = require "modules.Datas"
+
+function init(self)
+	go.property("color", 0)
+	-- green = 1 pink = 2, red = 3, turquo = 4
+	-- change color
+	if self.color == 1 then
+		sprite.set_constant("#sprite", "tint", datas.colors.green)
+	elseif self.color == 2 then
+		sprite.set_constant("#sprite", "tint", datas.colors.pink)
+	elseif self.color == 3 then
+		sprite.set_constant("#sprite", "tint", datas.colors.red)
+	elseif self.color == 4 then
+		sprite.set_constant("#sprite", "tint", datas.colors.turquo)
+	elseif self.color == 5 then
+		sprite.set_constant("#sprite", "tint", datas.colors.yellow)
+	else
+		sprite.set_constant("#sprite", "tint", datas.colors.white)
+	end
+	self.goBig = true
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == datas.hashs.trigger_response and message.enter then
+		-- say change ball direction
+		msg.post("/ball#ball", "change" )
+		sound.play("#sound", {delay = 0, gain = 1, pan = 0, speed = 1})
+		-- juice hit animation
+		if self.goBig == true then -- play only if not already playing
+			go.animate(".", "scale", go.PLAYBACK_ONCE_PINGPONG, vmath.vector3(2, 0.5 ,1), go.EASING_LINEAR, 0.2, 0, function () self.goBig = true end)
+			self.goBig = false -- say playing
+		end
+	end
+	if message_id == datas.hashs.create then
+		-- when hit stop time and spawn particles
+		StopTime(self, message.duration, "#factory", message.direction)
+	end
+end

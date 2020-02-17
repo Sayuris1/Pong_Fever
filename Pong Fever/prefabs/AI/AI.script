@@ -1,0 +1,28 @@
+local datas = require "modules.Datas"
+
+function init(self)
+	go.property("Speed", 8.5)
+	-- pink = 1, red = 2, turquo = 3
+	go.property("Color", 1)
+	if self.Color == 1 then -- pink
+		sprite.set_constant("#sprite", "tint", datas.colors.pink)
+	elseif self.Color == 2 then -- red
+		sprite.set_constant("#sprite", "tint", datas.colors.red)
+	elseif self.Color == 3 then
+		sprite.set_constant("#sprite", "tint", datas.colors.turquo)
+	elseif self.Color == 4 then
+		sprite.set_constant("#sprite", "tint", datas.colors.yellow)
+	else
+		sprite.set_constant("#sprite", "tint", datas.colors.white)
+	end
+end
+
+function update(self, dt)
+	local currentPos = go.get_position() -- calls go.get_position every frame but just once // better than typing go.get_position().x everywhere
+	local ballPos = go.get_position("/ball")
+	-- dt is a small number thats why AI is not following the ball perfectly
+	currentPos.x = currentPos.x + (ballPos.x - currentPos.x) * self.Speed * dt
+	
+	go.set_position(currentPos)
+	
+end

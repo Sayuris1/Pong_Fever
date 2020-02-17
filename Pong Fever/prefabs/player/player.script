@@ -1,0 +1,12 @@
+local camera = require "orthographic.camera"
+local datas = require "modules.Datas"
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	sprite.set_constant("#sprite", "tint", datas.colors.green)
+end
+
+function on_input(self, action_id, action)
+	local newPos = camera.screen_to_world(hash("/camera"), action.x)
+	go.set_position(vmath.vector3(newPos.x, -400, 0))
+end

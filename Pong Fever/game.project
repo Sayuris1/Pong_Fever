@@ -1,0 +1,29 @@
+[bootstrap]
+main_collection = /LvLs/loader/loader.collectionc
+render = /orthographic/render/orthographic.renderc
+
+[script]
+shared_state = 1
+
+[display]
+width = 480
+height = 854
+display_profiles = /builtins/render/default.display_profilesc
+
+[android]
+input_method = HiddenInputField
+
+[project]
+title = pong
+dependencies = https://github.com/britzl/defold-orthographic/archive/master.zip,https://github.com/selimanac/defold-random/archive/master.zip,https://github.com/britzl/defold-input/archive/master.zip,https://github.com/subsoap/defos/archive/master.zip
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
+
+[html5]
+scale_mode = stretch
+show_fullscreen_button = 0
+heap_size = 300
+show_made_with_defold = 0
+
